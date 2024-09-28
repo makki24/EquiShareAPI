@@ -1,5 +1,6 @@
 package org.example.fakeportfolios.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -8,16 +9,18 @@ import java.util.Set;
 @Entity
 @Table(name = "users")
 public class User {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String username;
-
     private String password;
-
+    private String displayName;
     private boolean enabled;
+    private double currentAmount;
+
+    @OneToMany(mappedBy = "user")
+    @JsonManagedReference
+    private Set<UserPortfolio> userPortfolios = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -67,6 +70,30 @@ public class User {
 
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
+    }
+
+    public double getCurrentAmount() {
+        return currentAmount;
+    }
+
+    public void setCurrentAmount(double currentAmount) {
+        this.currentAmount = currentAmount;
+    }
+
+    public Set<UserPortfolio> getUserPortfolios() {
+        return userPortfolios;
+    }
+
+    public void setUserPortfolios(Set<UserPortfolio> userPortfolios) {
+        this.userPortfolios = userPortfolios;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 }
 

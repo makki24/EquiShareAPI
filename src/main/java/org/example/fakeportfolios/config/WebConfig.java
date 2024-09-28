@@ -10,7 +10,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("https://my-angular-app.com")  // Allow requests from this domain
+                .allowedOrigins("http://localhost:4200")  // Allow requests from this domain
                 .allowedMethods("GET", "POST", "PUT", "DELETE")
                 .allowCredentials(true);  // Allow cookies if using sessions
     }
