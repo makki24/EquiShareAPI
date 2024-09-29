@@ -3,7 +3,10 @@ package org.example.fakeportfolios.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -20,7 +23,8 @@ public class Portfolio {
     private Set<UserPortfolio> userPortfolios = new HashSet<>();
 
     @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL)
-    private Set<SharesTransaction> sharesTransactions = new HashSet<>();
+    @JsonManagedReference("portfolio-sharesTransaction")
+    private List<SharesTransaction> sharesTransactions = new ArrayList<>();
 
     public void updateTotalValue(double amount) {
         this.totalValue += amount;
@@ -69,11 +73,11 @@ public class Portfolio {
         this.userPortfolios = userPortfolios;
     }
 
-    public Set<SharesTransaction> getSharesTransactions() {
+    public List<SharesTransaction> getSharesTransactions() {
         return sharesTransactions;
     }
 
-    public void setSharesTransactions(Set<SharesTransaction> sharesTransactions) {
+    public void setSharesTransactions(List<SharesTransaction> sharesTransactions) {
         this.sharesTransactions = sharesTransactions;
     }
 }

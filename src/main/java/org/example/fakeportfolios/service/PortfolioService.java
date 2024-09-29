@@ -43,6 +43,8 @@ public class PortfolioService {
             userPortfolioResponse.setCurrentValue((userPortfolioUser.getOwnershipPercentage() / 100) * currentValueOfPortfolio);
             userPortfolioResponses.add(userPortfolioResponse);
         }
+        portfolioDetailResponse.setTotalShareValue(shareOnlyValueOfPortfolio(portfolio));
+        portfolioDetailResponse.setShares(portfolio.getSharesTransactions());
         portfolioDetailResponse.setUserPortfolioResponses(userPortfolioResponses);
         return portfolioDetailResponse;
     }
@@ -86,12 +88,17 @@ public class PortfolioService {
         portfolioRepository.save(portfolio);
     }
 
-    double currentShareValueOfPortfolio(Portfolio portfolio) {
+    double shareOnlyValueOfPortfolio(Portfolio portfolio) {
         double res = 0;
         for(SharesTransaction sharesTransaction: portfolio.getSharesTransactions()) {
             res += sharesTransaction.getCurrentPrice();
         }
-        return res + portfolio.getTotalValue();
+        return res;
+    }
+
+    double currentShareValueOfPortfolio(Portfolio portfolio) {
+
+        return shareOnlyValueOfPortfolio(portfolio) + portfolio.getTotalValue();
     }
 
 

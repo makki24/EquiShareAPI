@@ -10,6 +10,7 @@ public class PortfolioDetailResponse {
     private Portfolio portfolio;
     private List<SharesTransaction> shares = new ArrayList<>();
     private List<UserPortfolioResponse> userPortfolios;
+    private double totalShareValue;
 
     // Getters and setters
 
@@ -35,5 +36,21 @@ public class PortfolioDetailResponse {
 
     public void setUserPortfolioResponses(List<UserPortfolioResponse> userPortfolios) {
         this.userPortfolios = userPortfolios;
+    }
+
+    public List<UserPortfolioResponse> getUserPortfolios() {
+        return userPortfolios;
+    }
+
+    public void setUserPortfolios(List<UserPortfolioResponse> userPortfolios) {
+        this.userPortfolios = userPortfolios;
+    }
+
+    public double getTotalShareValue() {
+        return totalShareValue;
+    }
+
+    public void setTotalShareValue(double totalShareValue) {
+        this.totalShareValue = totalShareValue;
     }
 }

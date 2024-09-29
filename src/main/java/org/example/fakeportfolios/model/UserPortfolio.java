@@ -27,6 +27,9 @@ public class UserPortfolio {
 
     // Utility methods for setting ownership percentage and contributions
     public void setOwnershipPercentage(double percentage) {
+        if (percentage > 100) {
+            throw new IllegalArgumentException("Ownership percentage cannot exceed 100%");
+        }
         this.ownershipPercentage = percentage;
     }
 

@@ -1,5 +1,7 @@
 package org.example.fakeportfolios.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -14,6 +16,7 @@ public class SharesTransaction {
 
     @ManyToOne
     @JoinColumn(name = "portfolio_id")
+    @JsonBackReference("portfolio-sharesTransaction")
     private Portfolio portfolio;
 
 

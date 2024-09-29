@@ -1,6 +1,7 @@
 package org.example.fakeportfolios.controller;
 
 import org.example.fakeportfolios.dto.PortfolioDetailResponse;
+import org.example.fakeportfolios.exception.DataInconsistentException;
 import org.example.fakeportfolios.model.Portfolio;
 import org.example.fakeportfolios.model.SharesTransaction;
 import org.example.fakeportfolios.model.User;
@@ -48,30 +49,31 @@ public class PortfolioController {
         return ResponseEntity.ok(portfolioRepository.save(portfolio));
     }
 
-    @PostMapping("/{portfolioId}/buy")
+    @PostMapping("/{portfolioId}/shares/buy")
     public ResponseEntity<?> buyShares(
             @PathVariable Long portfolioId,
-            @RequestParam Long userId,
             @RequestParam double buyingPrice,
             @RequestParam int qty,
-            @RequestParam double brokerage
+            @RequestParam String displayName
     ) {
-        User user = userService.findById(userId).orElseThrow();
         Portfolio portfolio = portfolioRepository.findById(portfolioId).orElseThrow();
 
-        double totalPrice = (buyingPrice * qty) + brokerage;
-        if (user.getCurrentAmount() < totalPrice) {
-            return ResponseEntity.badRequest().body("Insufficient funds");
+        double totalPrice = (buyingPrice * qty);
+        if (portfolio.getTotalValue() < totalPrice) {
+            throw new DataInconsistentException("Insufficient funds");
         }
 
         SharesTransaction sharesTransaction = new SharesTransaction();
         sharesTransaction.setBuyingPrice(buyingPrice);
+        sharesTransaction.setCurrentPrice(buyingPrice);
         sharesTransaction.setQty(qty);
         sharesTransaction.setPortfolio(portfolio);
+        sharesTransaction.setDisplayName(displayName);
         sharesTransactionRepository.save(sharesTransaction);
 
-        user.setCurrentAmount(user.getCurrentAmount() - totalPrice);
-        userService.save(user);
+        portfolio.setTotalValue(portfolio.getTotalValue() - totalPrice);
+
+        portfolioRepository.save(portfolio);
 
         return ResponseEntity.ok(sharesTransaction);
     }
