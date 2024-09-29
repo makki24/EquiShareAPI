@@ -14,12 +14,12 @@ public class UserPortfolio {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonBackReference
+    @JsonBackReference("user-userPortfolio")
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "portfolio_id", nullable = false)
-    @JsonManagedReference
+    @JsonBackReference("portfolio-userPortfolio")
     private Portfolio portfolio;
 
     private double contributionAmount; // Amount user contributed to the portfolio

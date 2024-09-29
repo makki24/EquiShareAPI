@@ -1,5 +1,6 @@
 package org.example.fakeportfolios.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
@@ -19,7 +20,7 @@ public class User {
     private double currentAmount;
 
     @OneToMany(mappedBy = "user")
-    @JsonManagedReference
+    @JsonManagedReference("user-userPortfolio")
     private Set<UserPortfolio> userPortfolios = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.EAGER)

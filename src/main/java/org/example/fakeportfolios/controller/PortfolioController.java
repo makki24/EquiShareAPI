@@ -82,12 +82,13 @@ public class PortfolioController {
         return ResponseEntity.ok(response);
     }
 
+
     @DeleteMapping("/{portfolioId}/liquidate")
     public ResponseEntity<Void> liquidatePortfolio(@PathVariable Long portfolioId) {
         return portfolioService.deletePortfolio(portfolioId);
     }
 
-    @PostMapping("/{portfolioId}/add-user")
+    @PostMapping("/{portfolioId}/user/add-user")
     public ResponseEntity<?> addUserToPortfolio(@PathVariable Long portfolioId, @RequestParam Long userId, @RequestParam double amountToAdd) {
         try {
             Portfolio updatedPortfolio = portfolioService.addUserToPortfolio(portfolioId, userId, amountToAdd);
@@ -96,6 +97,16 @@ public class PortfolioController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @DeleteMapping("/{portfolioId}/user/delete-user/{userId}")
+    public ResponseEntity<Void> removeUserFromPortfolio(
+            @PathVariable Long portfolioId,
+            @PathVariable Long userId) {
+
+        portfolioService.removeUserFromPortfolio(portfolioId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
 
     @GetMapping("/{portfolioId}/ownershipPercentage/{userId}")
     public ResponseEntity<Double> getOwnershipPercentage(@PathVariable Long portfolioId, @PathVariable Long userId) {

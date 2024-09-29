@@ -21,7 +21,7 @@ public class LoadDatabase {
     CommandLineRunner initDatabase(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
         return args -> {
             String username = "makki24";
-            String displayName = "Syed Maqthyar";
+            String displayName = "Admin";
             String initialPassword = "password"; // Set the initial password
             Set<String> rolesList = new HashSet<>(List.of(Roles.ADMIN)); // Roles.ADMIN = "ROLE_ADMIN"
 

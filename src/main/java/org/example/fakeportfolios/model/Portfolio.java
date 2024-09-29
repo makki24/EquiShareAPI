@@ -1,6 +1,7 @@
 package org.example.fakeportfolios.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
@@ -15,7 +16,7 @@ public class Portfolio {
     private double portfolioCharge;
 
     @OneToMany(mappedBy = "portfolio")
-    @JsonBackReference
+    @JsonManagedReference("portfolio-userPortfolio")
     private Set<UserPortfolio> userPortfolios = new HashSet<>();
 
     @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL)

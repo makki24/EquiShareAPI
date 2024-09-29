@@ -3,6 +3,9 @@ package org.example.fakeportfolios.dto;
 public class UserPortfolioResponse {
     private String username;
     private double contributionPercentage;
+    private String displayName;
+    private double currentValue;
+    private Long id; //user id
 
     // Getters and setters
 
@@ -20,5 +23,29 @@ public class UserPortfolioResponse {
 
     public void setContributionPercentage(double contributionPercentage) {
         this.contributionPercentage = contributionPercentage;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public double getCurrentValue() {
+        return currentValue;
+    }
+
+    public void setCurrentValue(double currentValue) {
+        this.currentValue = currentValue;
     }
 }

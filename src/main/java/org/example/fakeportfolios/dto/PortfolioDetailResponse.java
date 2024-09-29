@@ -2,14 +2,14 @@ package org.example.fakeportfolios.dto;
 
 import org.example.fakeportfolios.model.Portfolio;
 import org.example.fakeportfolios.model.SharesTransaction;
-import org.example.fakeportfolios.model.UserPortfolio;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PortfolioDetailResponse {
     private Portfolio portfolio;
-    private List<SharesTransaction> shares;
-    private List<UserPortfolio> userPortfolios;
+    private List<SharesTransaction> shares = new ArrayList<>();
+    private List<UserPortfolioResponse> userPortfolios;
 
     // Getters and setters
 
@@ -29,11 +29,11 @@ public class PortfolioDetailResponse {
         this.shares = shares;
     }
 
-    public List<UserPortfolio> getUserPortfolios() {
+    public List<UserPortfolioResponse> getUserPortfolioResponses() {
         return userPortfolios;
     }
 
-    public void setUserPortfolios(List<UserPortfolio> userPortfolios) {
+    public void setUserPortfolioResponses(List<UserPortfolioResponse> userPortfolios) {
         this.userPortfolios = userPortfolios;
     }
 }
