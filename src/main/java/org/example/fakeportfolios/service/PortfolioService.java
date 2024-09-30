@@ -91,7 +91,7 @@ public class PortfolioService {
     double shareOnlyValueOfPortfolio(Portfolio portfolio) {
         double res = 0;
         for(SharesTransaction sharesTransaction: portfolio.getSharesTransactions()) {
-            res += sharesTransaction.getCurrentPrice();
+            res += sharesTransaction.getCurrentPrice() * sharesTransaction.getQty();
         }
         return res;
     }
@@ -101,6 +101,15 @@ public class PortfolioService {
         return shareOnlyValueOfPortfolio(portfolio) + portfolio.getTotalValue();
     }
 
+
+    Portfolio save(Portfolio portfolio) {
+        return  portfolioRepository.save(portfolio);
+    }
+
+
+    Optional<Portfolio> findById(Long id) {
+        return portfolioRepository.findById(id);
+    }
 
     @Transactional
     public Portfolio addUserToPortfolio(Long portfolioId, Long userId, double amountToAdd) {
