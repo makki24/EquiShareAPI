@@ -2,6 +2,7 @@ package org.example.fakeportfolios.service;
 
 import org.example.fakeportfolios.dto.PortfolioDetailResponse;
 import org.example.fakeportfolios.dto.UserPortfolioResponse;
+import org.example.fakeportfolios.exception.DataNotFoundException;
 import org.example.fakeportfolios.model.SharesTransaction;
 import org.example.fakeportfolios.model.UserPortfolio;
 import org.example.fakeportfolios.repository.UserPortfolioRepository;
@@ -179,6 +180,28 @@ public class PortfolioService {
         portfolio.updateTotalValue(finalContribution + extraAdditionToPortfolio);
 
         return portfolioRepository.save(portfolio);
+    }
+
+    @Transactional
+    public ResponseEntity<Portfolio> saveExistingPortfolio(Portfolio portfolio) {
+        Portfolio oldPortfolio = findById(portfolio.getId()).orElseThrow(() -> new DataNotFoundException("Portfolio not found"));
+
+        double currentValueofPortfolio = currentShareValueOfPortfolio(oldPortfolio);
+        double extraCharge = (portfolio.getPortfolioCharge() - oldPortfolio.getPortfolioCharge());
+        double extraAdditionToPortfolio = extraCharge * oldPortfolio.getUserPortfolios().size();
+
+        for (UserPortfolio userPortfolio : oldPortfolio.getUserPortfolios()) {
+
+            double userCurrentValue = (userPortfolio.getOwnershipPercentage() / 100) * currentValueofPortfolio;
+            userCurrentValue = userCurrentValue - extraCharge;
+
+            double newPercentageofUser = (userCurrentValue/(currentValueofPortfolio - extraAdditionToPortfolio)) * 100;
+            userPortfolio.setOwnershipPercentage(newPercentageofUser);
+        }
+
+        oldPortfolio.setPortfolioCharge(portfolio.getPortfolioCharge());
+
+        return ResponseEntity.ok(portfolioRepository.save(oldPortfolio));
     }
 
 }

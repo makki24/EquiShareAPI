@@ -46,6 +46,8 @@ public class PortfolioController {
 
     @PostMapping("/create")
     public ResponseEntity<Portfolio> createPortfolio(@RequestBody Portfolio portfolio) {
+        if (portfolio.getId() != null)
+            return portfolioService.saveExistingPortfolio(portfolio);
         return ResponseEntity.ok(portfolioRepository.save(portfolio));
     }
 
