@@ -2,6 +2,7 @@ package org.example.fakeportfolios.service;
 
 import org.example.fakeportfolios.dto.PortfolioDetailResponse;
 import org.example.fakeportfolios.dto.UserPortfolioResponse;
+import org.example.fakeportfolios.exception.DataInconsistentException;
 import org.example.fakeportfolios.exception.DataNotFoundException;
 import org.example.fakeportfolios.model.SharesTransaction;
 import org.example.fakeportfolios.model.UserPortfolio;
@@ -110,6 +111,43 @@ public class PortfolioService {
 
     Optional<Portfolio> findById(Long id) {
         return portfolioRepository.findById(id);
+    }
+
+    @Transactional
+    public Portfolio withDrawAmount(Long portfolioId, Long userId, double amountToWithdraw) {
+        Portfolio portfolio = portfolioRepository.findById(portfolioId)
+                .orElseThrow(() -> new NoSuchElementException("Portfolio not found"));
+
+        User user = userService.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("User not found"));
+
+        UserPortfolio userPortfolio =
+                userPortfolioService.findByUserAndPortfolio(userId, portfolioId).orElseThrow(() -> new DataNotFoundException("User portfolio not found"));
+
+        if (portfolio.getTotalValue() < amountToWithdraw && (amountToWithdraw > 0))
+            throw new DataInconsistentException("Amount should be smaller than availaible cash");
+
+        double currentValueofPortfolio = currentShareValueOfPortfolio(portfolio);
+        double userCurrentValue = (userPortfolio.getOwnershipPercentage() / 100) * (currentValueofPortfolio);
+
+        if (userCurrentValue < amountToWithdraw)
+            throw new DataInconsistentException("Amount should be smaller than user amount");
+
+
+        for (UserPortfolio allUserportfolio : portfolio.getUserPortfolios()) {
+
+            double otherUserCurrentValue;
+            if (Objects.equals(allUserportfolio.getId(), userPortfolio.getId())) {
+                otherUserCurrentValue = userCurrentValue - amountToWithdraw;
+            }
+            else {
+                otherUserCurrentValue = (allUserportfolio.getOwnershipPercentage() / 100) * currentValueofPortfolio;
+            }
+            double newPercentageofUser = (otherUserCurrentValue/(currentValueofPortfolio - amountToWithdraw)) * 100;
+            allUserportfolio.setOwnershipPercentage(newPercentageofUser);
+        }
+        portfolio.setTotalValue(portfolio.getTotalValue() - amountToWithdraw);
+        return save(portfolio);
     }
 
     @Transactional

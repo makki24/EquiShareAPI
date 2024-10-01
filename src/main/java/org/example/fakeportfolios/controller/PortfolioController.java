@@ -102,6 +102,12 @@ public class PortfolioController {
         }
     }
 
+    @PostMapping("/{portfolioId}/user/withdraw-amount")
+    public ResponseEntity<?> withDrawAmount(@PathVariable Long portfolioId, @RequestParam Long userId, @RequestParam double amountToWithdraw) {
+        Portfolio updatedPortfolio = portfolioService.withDrawAmount(portfolioId, userId, amountToWithdraw);
+        return ResponseEntity.ok(updatedPortfolio);
+    }
+
     @DeleteMapping("/{portfolioId}/user/delete-user/{userId}")
     public ResponseEntity<Void> removeUserFromPortfolio(
             @PathVariable Long portfolioId,
