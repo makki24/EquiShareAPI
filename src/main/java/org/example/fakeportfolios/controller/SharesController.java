@@ -22,15 +22,21 @@ public class SharesController {
         return sharesService.updateSharePrice(shareId, amountToUpdate);
     }
 
+    @PostMapping("/update-share-qty-and-buying-price")
+    public ResponseEntity<Void> updateSharePrice(@RequestParam Long portfolioId, @RequestParam Long shareId, @RequestParam int qty, @RequestParam double amountToUpdate) {
+        return sharesService.updateShareQtyAndBuyPrice(portfolioId, shareId, qty, amountToUpdate);
+    }
+
     @PostMapping("/{shareId}/sell-share")
     public ResponseEntity<?> sellShares(
             @PathVariable Long shareId,
             @RequestParam double sellingPrice,
             @RequestParam int qty,
-            @RequestParam Long portfolioId
+            @RequestParam Long portfolioId,
+            @RequestParam double charges
     ) {
         sharesService.updateSharePrice(shareId, sellingPrice);
-        return sharesService.sellShare(portfolioId, shareId, sellingPrice, qty);
+        return sharesService.sellShare(portfolioId, shareId, sellingPrice, qty, charges);
     }
 
     @GetMapping("/search")

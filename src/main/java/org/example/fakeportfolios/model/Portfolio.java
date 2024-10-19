@@ -26,6 +26,12 @@ public class Portfolio {
     @JsonManagedReference("portfolio-sharesTransaction")
     private List<SharesTransaction> sharesTransactions = new ArrayList<>();
 
+    @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL)
+    private List<PortfolioTransaction> portfolioTransactionsHistory;
+
+    @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL)
+    private List<UserTransaction> userTransactionsHistory;
+
     public void updateTotalValue(double amount) {
         this.totalValue += amount;
     }

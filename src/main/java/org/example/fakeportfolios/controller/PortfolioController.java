@@ -10,6 +10,7 @@ import org.example.fakeportfolios.repository.PortfolioRepository;
 import org.example.fakeportfolios.repository.SharesTransactionRepository;
 import org.example.fakeportfolios.repository.UserRepository;
 import org.example.fakeportfolios.service.PortfolioService;
+import org.example.fakeportfolios.service.SharesService;
 import org.example.fakeportfolios.service.UserPortfolioService;
 import org.example.fakeportfolios.service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -30,13 +31,15 @@ public class PortfolioController {
     private final PortfolioService portfolioService;
     private final UserService userService;
     private final UserPortfolioService userPortfolioService;
+    private final SharesService sharesService;
 
-    public PortfolioController(PortfolioRepository portfolioRepository, SharesTransactionRepository sharesTransactionRepository, PortfolioService portfolioService, UserService userService, UserPortfolioService userPortfolioService) {
+    public PortfolioController(PortfolioRepository portfolioRepository, SharesTransactionRepository sharesTransactionRepository, PortfolioService portfolioService, UserService userService, UserPortfolioService userPortfolioService, SharesService sharesService) {
         this.portfolioRepository = portfolioRepository;
         this.sharesTransactionRepository = sharesTransactionRepository;
         this.portfolioService = portfolioService;
         this.userService = userService;
         this.userPortfolioService = userPortfolioService;
+        this.sharesService = sharesService;
     }
 
     @GetMapping("/list")
@@ -48,7 +51,7 @@ public class PortfolioController {
     public ResponseEntity<Portfolio> createPortfolio(@RequestBody Portfolio portfolio) {
         if (portfolio.getId() != null)
             return portfolioService.saveExistingPortfolio(portfolio);
-        return ResponseEntity.ok(portfolioRepository.save(portfolio));
+        return portfolioService.createNew(portfolio);
     }
 
     @PostMapping("/{portfolioId}/shares/buy")
@@ -56,26 +59,11 @@ public class PortfolioController {
             @PathVariable Long portfolioId,
             @RequestParam double buyingPrice,
             @RequestParam int qty,
-            @RequestParam String displayName
+            @RequestParam String displayName,
+            @RequestParam double charges
     ) {
-        Portfolio portfolio = portfolioRepository.findById(portfolioId).orElseThrow();
 
-        double totalPrice = (buyingPrice * qty);
-        if (portfolio.getTotalValue() < totalPrice) {
-            throw new DataInconsistentException("Insufficient funds");
-        }
-
-        SharesTransaction sharesTransaction = new SharesTransaction();
-        sharesTransaction.setBuyingPrice(buyingPrice);
-        sharesTransaction.setCurrentPrice(buyingPrice);
-        sharesTransaction.setQty(qty);
-        sharesTransaction.setPortfolio(portfolio);
-        sharesTransaction.setDisplayName(displayName);
-        sharesTransactionRepository.save(sharesTransaction);
-
-        portfolio.setTotalValue(portfolio.getTotalValue() - totalPrice);
-
-        portfolioRepository.save(portfolio);
+        SharesTransaction sharesTransaction = sharesService.buyShares(portfolioId, buyingPrice, qty, displayName, charges);
 
         return ResponseEntity.ok(sharesTransaction);
     }

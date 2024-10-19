@@ -36,6 +36,10 @@ public class UserPortfolioService {
         return userPortfolio;
     }
 
+    public UserPortfolio save(UserPortfolio userPortfolio) {
+        return userPortfolioRepository.save(userPortfolio);
+    }
+
     public void deleteUserFromPortfolio(UserPortfolio userPortfolio) {
         userPortfolioRepository.delete(userPortfolio);
     }

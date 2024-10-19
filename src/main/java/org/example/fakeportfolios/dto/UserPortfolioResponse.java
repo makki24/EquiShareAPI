@@ -5,6 +5,7 @@ public class UserPortfolioResponse {
     private double contributionPercentage;
     private String displayName;
     private double currentValue;
+    private double savedCurrentValue;
     private Long id; //user id
 
     // Getters and setters
@@ -47,5 +48,13 @@ public class UserPortfolioResponse {
 
     public void setCurrentValue(double currentValue) {
         this.currentValue = currentValue;
+    }
+
+    public double getSavedCurrentValue() {
+        return savedCurrentValue;
+    }
+
+    public void setSavedCurrentValue(double savedCurrentValue) {
+        this.savedCurrentValue = savedCurrentValue;
     }
 }

@@ -22,11 +22,15 @@ public class PortfolioService {
     private final PortfolioRepository portfolioRepository;
     private final UserService userService;
     private final UserPortfolioService userPortfolioService;
+    private final UserTransactionService userTransactionService;
+    private final PortfolioTransactionService portfolioTransactionService;
 
-    public PortfolioService(PortfolioRepository portfolioRepository, UserService userService, UserPortfolioService userPortfolioService) {
+    public PortfolioService(PortfolioRepository portfolioRepository, UserService userService, UserPortfolioService userPortfolioService, UserTransactionService userTransactionService, PortfolioTransactionService portfolioTransactionService) {
         this.portfolioRepository = portfolioRepository;
         this.userService = userService;
         this.userPortfolioService = userPortfolioService;
+        this.userTransactionService = userTransactionService;
+        this.portfolioTransactionService = portfolioTransactionService;
     }
 
     public PortfolioDetailResponse getPortfolioDetail(Long id) {
@@ -43,6 +47,7 @@ public class PortfolioService {
             userPortfolioResponse.setDisplayName(userPortfolioUser.getUser().getDisplayName());
             userPortfolioResponse.setContributionPercentage(userPortfolioUser.getOwnershipPercentage());
             userPortfolioResponse.setCurrentValue((userPortfolioUser.getOwnershipPercentage() / 100) * currentValueOfPortfolio);
+            userPortfolioResponse.setSavedCurrentValue(userPortfolioUser.getContributionAmount());
             userPortfolioResponses.add(userPortfolioResponse);
         }
         portfolioDetailResponse.setTotalShareValue(shareOnlyValueOfPortfolio(portfolio));
@@ -139,14 +144,18 @@ public class PortfolioService {
             double otherUserCurrentValue;
             if (Objects.equals(allUserportfolio.getId(), userPortfolio.getId())) {
                 otherUserCurrentValue = userCurrentValue - amountToWithdraw;
+                userTransactionService.withdrawUserAmount(portfolio, user, amountToWithdraw, otherUserCurrentValue);
             }
             else {
                 otherUserCurrentValue = (allUserportfolio.getOwnershipPercentage() / 100) * currentValueofPortfolio;
             }
             double newPercentageofUser = (otherUserCurrentValue/(currentValueofPortfolio - amountToWithdraw)) * 100;
+            allUserportfolio.setContributionAmount(otherUserCurrentValue);
             allUserportfolio.setOwnershipPercentage(newPercentageofUser);
         }
         portfolio.setTotalValue(portfolio.getTotalValue() - amountToWithdraw);
+        portfolioTransactionService.withdrawAmount(portfolio, user, amountToWithdraw);
+
         return save(portfolio);
     }
 
@@ -198,6 +207,10 @@ public class PortfolioService {
             double newPercentageofUser = (userCurrentValue/(currentValueofPortfolio + finalContribution + extraAdditionToPortfolio)) * 100;
             userPortfolio.setOwnershipPercentage(newPercentageofUser);
 
+            userPortfolio.setContributionAmount(userCurrentValue);
+            userPortfolioService.save(userPortfolio);
+            userTransactionService.updateChargeInPortfolio(portfolio, userPortfolio.getUser(), -userCharge, userCurrentValue, true);
+
         }
 
 
@@ -217,6 +230,9 @@ public class PortfolioService {
         // Update portfolio total value
         portfolio.updateTotalValue(finalContribution + extraAdditionToPortfolio);
 
+        userTransactionService.createNewUserInPortfolio(portfolio, user, amountToAdd, finalContribution + newUserOldValue);
+        portfolioTransactionService.createNewUserInPortfolio(portfolio, user, amountToAdd);
+
         return portfolioRepository.save(portfolio);
     }
 
@@ -228,18 +244,39 @@ public class PortfolioService {
         double extraCharge = (portfolio.getPortfolioCharge() - oldPortfolio.getPortfolioCharge());
         double extraAdditionToPortfolio = extraCharge * oldPortfolio.getUserPortfolios().size();
 
+        if ((oldPortfolio.getTotalValue() - extraAdditionToPortfolio )< 0) {
+            new DataInconsistentException("Amount not availaible");
+        }
+
         for (UserPortfolio userPortfolio : oldPortfolio.getUserPortfolios()) {
 
             double userCurrentValue = (userPortfolio.getOwnershipPercentage() / 100) * currentValueofPortfolio;
             userCurrentValue = userCurrentValue - extraCharge;
 
             double newPercentageofUser = (userCurrentValue/(currentValueofPortfolio - extraAdditionToPortfolio)) * 100;
+
+            userPortfolio.setContributionAmount(userCurrentValue);
+            userPortfolioService.save(userPortfolio);
+
+            userTransactionService.updateChargeInPortfolio(portfolio, userPortfolio.getUser(), extraCharge, userCurrentValue, false);
+
             userPortfolio.setOwnershipPercentage(newPercentageofUser);
         }
 
+        oldPortfolio.setTotalValue(oldPortfolio.getTotalValue() - extraAdditionToPortfolio);
+
         oldPortfolio.setPortfolioCharge(portfolio.getPortfolioCharge());
 
+        portfolioTransactionService.updateCharge(oldPortfolio, extraAdditionToPortfolio);
+
         return ResponseEntity.ok(portfolioRepository.save(oldPortfolio));
+    }
+
+    @Transactional
+    public ResponseEntity<Portfolio> createNew(Portfolio portfolio) {
+        Portfolio portfolio1 = portfolioRepository.save(portfolio);
+        portfolioTransactionService.createNewPortfolio(portfolio1);
+        return ResponseEntity.ok(portfolio1);
     }
 
 }
