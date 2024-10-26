@@ -87,7 +87,7 @@ public class UserTransactionService {
         saveTransaction(transaction);
     }
 
-    private UserTransaction saveTransaction(UserTransaction userTransaction) {
+    public UserTransaction saveTransaction(UserTransaction userTransaction) {
         return userTransactionRepository.save(userTransaction);
     }
 

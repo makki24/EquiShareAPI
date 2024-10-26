@@ -4,17 +4,16 @@ import org.example.fakeportfolios.dto.PortfolioDetailResponse;
 import org.example.fakeportfolios.dto.UserPortfolioResponse;
 import org.example.fakeportfolios.exception.DataInconsistentException;
 import org.example.fakeportfolios.exception.DataNotFoundException;
-import org.example.fakeportfolios.model.SharesTransaction;
-import org.example.fakeportfolios.model.UserPortfolio;
+import org.example.fakeportfolios.model.*;
+import org.example.fakeportfolios.repository.SharesTransactionRepository;
 import org.example.fakeportfolios.repository.UserPortfolioRepository;
 import org.springframework.transaction.annotation.Transactional;
-import org.example.fakeportfolios.model.Portfolio;
-import org.example.fakeportfolios.model.User;
 import org.example.fakeportfolios.repository.PortfolioRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class PortfolioService {
@@ -24,13 +23,15 @@ public class PortfolioService {
     private final UserPortfolioService userPortfolioService;
     private final UserTransactionService userTransactionService;
     private final PortfolioTransactionService portfolioTransactionService;
+    private final SharesTransactionRepository sharesTransactionRepository;
 
-    public PortfolioService(PortfolioRepository portfolioRepository, UserService userService, UserPortfolioService userPortfolioService, UserTransactionService userTransactionService, PortfolioTransactionService portfolioTransactionService) {
+    public PortfolioService(PortfolioRepository portfolioRepository, UserService userService, UserPortfolioService userPortfolioService, UserTransactionService userTransactionService, PortfolioTransactionService portfolioTransactionService, SharesTransactionRepository sharesTransactionRepository) {
         this.portfolioRepository = portfolioRepository;
         this.userService = userService;
         this.userPortfolioService = userPortfolioService;
         this.userTransactionService = userTransactionService;
         this.portfolioTransactionService = portfolioTransactionService;
+        this.sharesTransactionRepository = sharesTransactionRepository;
     }
 
     public PortfolioDetailResponse getPortfolioDetail(Long id) {
@@ -269,6 +270,7 @@ public class PortfolioService {
         oldPortfolio.setTotalValue(oldPortfolio.getTotalValue() - extraAdditionToPortfolio);
 
         oldPortfolio.setPortfolioCharge(portfolio.getPortfolioCharge());
+        oldPortfolio.setDisplayName(portfolio.getDisplayName());
 
         portfolioTransactionService.updateCharge(oldPortfolio, extraAdditionToPortfolio);
 
@@ -281,5 +283,96 @@ public class PortfolioService {
         portfolioTransactionService.createNewPortfolio(portfolio1);
         return ResponseEntity.ok(portfolio1);
     }
+
+    @Transactional
+    public Portfolio cloneAndSavePortfolio(Long id) {
+        // Clone the portfolio object
+        Portfolio originalPortfolio = portfolioRepository.findById(id).orElseThrow(() -> new DataNotFoundException("Portfolio not found"));
+        Portfolio clonedPortfolio = clonePortfolio(originalPortfolio);
+
+        // Save cloned portfolio to generate an ID
+        clonedPortfolio = portfolioRepository.save(clonedPortfolio);
+
+        // Save cloned UserPortfolios
+        Portfolio finalClonedPortfolio = clonedPortfolio;
+        Set<UserPortfolio> clonedUserPortfolios = originalPortfolio.getUserPortfolios().stream().map(userPortfolio -> {
+            UserPortfolio clonedUserPortfolio = new UserPortfolio();
+            clonedUserPortfolio.setContributionAmount(userPortfolio.getContributionAmount());
+            clonedUserPortfolio.setOwnershipPercentage(userPortfolio.getOwnershipPercentage());
+            clonedUserPortfolio.setAddedAmount(userPortfolio.getAddedAmount());
+            clonedUserPortfolio.setUser(userPortfolio.getUser());
+            clonedUserPortfolio.setPortfolio(finalClonedPortfolio); // Link to cloned portfolio
+            return userPortfolioService.save(clonedUserPortfolio); // Save each UserPortfolio
+        }).collect(Collectors.toSet());
+        finalClonedPortfolio.setUserPortfolios(clonedUserPortfolios);
+
+        // Save cloned SharesTransactions
+        List<SharesTransaction> clonedSharesTransactions = originalPortfolio.getSharesTransactions().stream().map(sharesTransaction -> {
+            SharesTransaction clonedSharesTransaction = new SharesTransaction();
+            clonedSharesTransaction.setDisplayName(sharesTransaction.getDisplayName());
+            clonedSharesTransaction.setBuyingPrice(sharesTransaction.getBuyingPrice());
+            clonedSharesTransaction.setCurrentPrice(sharesTransaction.getCurrentPrice());
+            clonedSharesTransaction.setQty(sharesTransaction.getQty());
+            clonedSharesTransaction.setPortfolio(finalClonedPortfolio); // Link to cloned portfolio
+            return sharesTransactionRepository.save(clonedSharesTransaction); // Save each SharesTransaction
+        }).collect(Collectors.toList());
+        finalClonedPortfolio.setSharesTransactions(clonedSharesTransactions);
+
+        // Save cloned PortfolioTransaction history
+        List<PortfolioTransaction> clonedPortfolioTransactions = originalPortfolio.getPortfolioTransactionsHistory().stream().map(transaction -> {
+            PortfolioTransaction clonedTransaction = new PortfolioTransaction();
+            clonedTransaction.setShareTransaction(transaction.getShareTransaction());
+            clonedTransaction.setSharePrice(transaction.getSharePrice());
+            clonedTransaction.setQuantity(transaction.getQuantity());
+            clonedTransaction.setShareTransactionCharge(transaction.getShareTransactionCharge());
+
+            clonedTransaction.setUser(transaction.getUser());
+            clonedTransaction.setAmount(transaction.getAmount());
+            clonedTransaction.setDate(transaction.getDate());
+            clonedTransaction.setDescription(transaction.getDescription());
+            clonedTransaction.setUpdatedPortfolioAmount(transaction.getUpdatedPortfolioAmount());
+            clonedTransaction.setAddTransaction(transaction.isAddTransaction());
+
+
+            clonedTransaction.setPortfolio(finalClonedPortfolio); // Link to cloned portfolio
+            return portfolioTransactionService.saveTransaction(clonedTransaction); // Save each PortfolioTransaction
+        }).collect(Collectors.toList());
+        finalClonedPortfolio.setPortfolioTransactionsHistory(clonedPortfolioTransactions);
+
+        // Save cloned UserTransaction history
+        List<UserTransaction> clonedUserTransactions = originalPortfolio.getUserTransactionsHistory().stream().map(transaction -> {
+            UserTransaction clonedTransaction = new UserTransaction();
+            clonedTransaction.setUpdatedUserAmount(transaction.getUpdatedUserAmount());
+
+            clonedTransaction.setUser(transaction.getUser());
+            clonedTransaction.setAmount(transaction.getAmount());
+            clonedTransaction.setDate(transaction.getDate());
+            clonedTransaction.setDescription(transaction.getDescription());
+            clonedTransaction.setUpdatedPortfolioAmount(transaction.getUpdatedPortfolioAmount());
+            clonedTransaction.setAddTransaction(transaction.isAddTransaction());
+
+            clonedTransaction.setPortfolio(finalClonedPortfolio); // Link to cloned portfolio
+            return userTransactionService.saveTransaction(clonedTransaction); // Save each UserTransaction
+        }).collect(Collectors.toList());
+        finalClonedPortfolio.setUserTransactionsHistory(clonedUserTransactions);
+
+        // Final save to update the cloned portfolio with all nested entities
+        return portfolioRepository.save(finalClonedPortfolio);
+    }
+
+    /**
+     * Helper method to clone the Portfolio object with its fields only (without saving).
+     *
+     * @param original The original portfolio to clone.
+     * @return The cloned portfolio.
+     */
+    private Portfolio clonePortfolio(Portfolio original) {
+        Portfolio clonedPortfolio = new Portfolio();
+        clonedPortfolio.setDisplayName(original.getDisplayName() + " (Copy)");
+        clonedPortfolio.setTotalValue(original.getTotalValue());
+        clonedPortfolio.setPortfolioCharge(original.getPortfolioCharge());
+        return clonedPortfolio;
+    }
+
 
 }

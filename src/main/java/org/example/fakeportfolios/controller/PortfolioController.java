@@ -90,6 +90,16 @@ public class PortfolioController {
         }
     }
 
+    @PostMapping("/{portfolioId}/clone-portfolio")
+    public ResponseEntity<?> addUserToPortfolio(@PathVariable Long portfolioId) {
+        try {
+            Portfolio updatedPortfolio = portfolioService.cloneAndSavePortfolio(portfolioId);
+            return ResponseEntity.ok(updatedPortfolio);
+        } catch (NoSuchElementException | IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @PostMapping("/{portfolioId}/user/withdraw-amount")
     public ResponseEntity<?> withDrawAmount(@PathVariable Long portfolioId, @RequestParam Long userId, @RequestParam double amountToWithdraw) {
         Portfolio updatedPortfolio = portfolioService.withDrawAmount(portfolioId, userId, amountToWithdraw);

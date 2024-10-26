@@ -84,7 +84,9 @@ public class SharesService {
 
         this.updateQtyInTransaction(portfolio, differenceQty, sharesTransaction.getBuyingPrice() - sharesTransaction.getCurrentPrice(), sharesTransaction.getDisplayName());
         if (differenceBuyingPrice != 0)
-            this.updatePriceInTransaction(portfolio, sharesTransaction.getBuyingPrice() - sharesTransaction.getCurrentPrice(), qty, sharesTransaction.getDisplayName());
+            this.updatePriceInTransaction(portfolio, sharesTransaction.getBuyingPrice() - sharesTransaction.getCurrentPrice(), qty, sharesTransaction.getDisplayName(),
+                        differenceBuyingPrice + amountToUpdate - sharesTransaction.getCurrentPrice()
+                    );
 
         return ResponseEntity.noContent().build();
     }
@@ -106,9 +108,9 @@ public class SharesService {
 
     }
 
-    private void updatePriceInTransaction(Portfolio portfolio, double amountAdded, long qty, String shareName) {
+    private void updatePriceInTransaction(Portfolio portfolio, double amountAdded, long qty, String shareName, double amountToRemove) {
 
-        double netChange = amountAdded * qty;
+        double netChange = (amountAdded - amountToRemove) * qty;
 
 
         for (UserPortfolio userPortfolio: portfolio.getUserPortfolios()) {

@@ -1,6 +1,7 @@
 package org.example.fakeportfolios.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
@@ -27,9 +28,11 @@ public class Portfolio {
     private List<SharesTransaction> sharesTransactions = new ArrayList<>();
 
     @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<PortfolioTransaction> portfolioTransactionsHistory;
 
     @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<UserTransaction> userTransactionsHistory;
 
     public void updateTotalValue(double amount) {
@@ -85,5 +88,21 @@ public class Portfolio {
 
     public void setSharesTransactions(List<SharesTransaction> sharesTransactions) {
         this.sharesTransactions = sharesTransactions;
+    }
+
+    public List<PortfolioTransaction> getPortfolioTransactionsHistory() {
+        return portfolioTransactionsHistory;
+    }
+
+    public void setPortfolioTransactionsHistory(List<PortfolioTransaction> portfolioTransactionsHistory) {
+        this.portfolioTransactionsHistory = portfolioTransactionsHistory;
+    }
+
+    public List<UserTransaction> getUserTransactionsHistory() {
+        return userTransactionsHistory;
+    }
+
+    public void setUserTransactionsHistory(List<UserTransaction> userTransactionsHistory) {
+        this.userTransactionsHistory = userTransactionsHistory;
     }
 }

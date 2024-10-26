@@ -134,7 +134,7 @@ public class PortfolioTransactionService {
         saveTransaction(portfolioTransaction);
     }
 
-    private PortfolioTransaction saveTransaction(PortfolioTransaction transaction) {
+    public PortfolioTransaction saveTransaction(PortfolioTransaction transaction) {
         return portfolioTransactionRepository.save(transaction);
     }
 
