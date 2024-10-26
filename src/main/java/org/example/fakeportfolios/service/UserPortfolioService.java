@@ -30,6 +30,7 @@ public class UserPortfolioService {
         userPortfolio.setUser(user);
         userPortfolio.setPortfolio(portfolio);
         userPortfolio.setContributionAmount(userPortfolio.getContributionAmount() + contributionAmount);
+        userPortfolio.setAddedAmount(userPortfolio.getAddedAmount() + contributionAmount);
 
         userPortfolioRepository.save(userPortfolio);
 

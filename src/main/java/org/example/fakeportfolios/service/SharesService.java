@@ -80,21 +80,47 @@ public class SharesService {
 
         portfolioService.save(portfolio);
         sharesTransactionRepository.save(sharesTransaction);
-        portfolioTransactionService.updateShareQtyAndBuyPrice(portfolio, sharesTransaction, differenceQty, differenceBuyingPrice);
+        portfolioTransactionService.updateShareQtyAndBuyPrice(portfolio, sharesTransaction, differenceQty + qty, differenceBuyingPrice + amountToUpdate);
+
+        this.updateQtyInTransaction(portfolio, differenceQty, sharesTransaction.getBuyingPrice() - sharesTransaction.getCurrentPrice(), sharesTransaction.getDisplayName());
+        if (differenceBuyingPrice != 0)
+            this.updatePriceInTransaction(portfolio, sharesTransaction.getBuyingPrice() - sharesTransaction.getCurrentPrice(), qty, sharesTransaction.getDisplayName());
+
+        return ResponseEntity.noContent().build();
+    }
+
+    private void updateQtyInTransaction(Portfolio portfolio, long qtyReduced, double oldPrice, String shareName) {
+
+        double netChange = oldPrice * qtyReduced;
+
 
         for (UserPortfolio userPortfolio: portfolio.getUserPortfolios()) {
             double userAmount = netChange * (userPortfolio.getOwnershipPercentage() / 100);
             userPortfolio.setContributionAmount(userPortfolio.getContributionAmount() + userAmount);
             userPortfolioService.save(userPortfolio);
 
-            double updatedAmount = amountToUpdate - sharesTransaction.getCurrentPrice();
-            updatedAmount = updatedAmount * (userPortfolio.getOwnershipPercentage() / 100);
-            userTransactionService.updateShare(userPortfolio, -updatedAmount,
-                    "more shares bought " + sharesTransaction.getDisplayName() + " current price deviated by " + updatedAmount
+            userTransactionService.updateShare(userPortfolio, userAmount,
+                    "qty changed of " + shareName + " to " + qtyReduced
             );
         }
 
-        return ResponseEntity.noContent().build();
+    }
+
+    private void updatePriceInTransaction(Portfolio portfolio, double amountAdded, long qty, String shareName) {
+
+        double netChange = amountAdded * qty;
+
+
+        for (UserPortfolio userPortfolio: portfolio.getUserPortfolios()) {
+            double userAmount = netChange * (userPortfolio.getOwnershipPercentage() / 100);
+            userPortfolio.setContributionAmount(userPortfolio.getContributionAmount() - userAmount);
+            userPortfolioService.save(userPortfolio);
+
+            userTransactionService.updateShare(userPortfolio, -userAmount,
+                    "price changed of " + shareName + " to " + amountAdded
+            );
+        }
+
     }
 
     @Transactional

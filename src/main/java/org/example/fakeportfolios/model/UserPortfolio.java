@@ -26,6 +26,7 @@ public class UserPortfolio {
 
     private double contributionAmount; // Amount user contributed to the portfolio
     private double ownershipPercentage; // Percentage of the total portfolio owned by this user
+    private double addedAmount;
 
     private double roundTo(double value, int decimalPlaces) {
         BigDecimal bd = new BigDecimal(Double.toString(value));
@@ -83,5 +84,13 @@ public class UserPortfolio {
 
     public double getOwnershipPercentage() {
         return ownershipPercentage;
+    }
+
+    public double getAddedAmount() {
+        return addedAmount;
+    }
+
+    public void setAddedAmount(double addedAmount) {
+        this.addedAmount = addedAmount;
     }
 }

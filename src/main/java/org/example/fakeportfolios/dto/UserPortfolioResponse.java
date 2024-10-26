@@ -5,6 +5,7 @@ public class UserPortfolioResponse {
     private double contributionPercentage;
     private String displayName;
     private double currentValue;
+    private double addedAmount;
     private double savedCurrentValue;
     private Long id; //user id
 
@@ -56,5 +57,13 @@ public class UserPortfolioResponse {
 
     public void setSavedCurrentValue(double savedCurrentValue) {
         this.savedCurrentValue = savedCurrentValue;
+    }
+
+    public double getAddedAmount() {
+        return addedAmount;
+    }
+
+    public void setAddedAmount(double addedAmount) {
+        this.addedAmount = addedAmount;
     }
 }

@@ -48,6 +48,7 @@ public class PortfolioService {
             userPortfolioResponse.setContributionPercentage(userPortfolioUser.getOwnershipPercentage());
             userPortfolioResponse.setCurrentValue((userPortfolioUser.getOwnershipPercentage() / 100) * currentValueOfPortfolio);
             userPortfolioResponse.setSavedCurrentValue(userPortfolioUser.getContributionAmount());
+            userPortfolioResponse.setAddedAmount(userPortfolioUser.getAddedAmount());
             userPortfolioResponses.add(userPortfolioResponse);
         }
         portfolioDetailResponse.setTotalShareValue(shareOnlyValueOfPortfolio(portfolio));
@@ -144,6 +145,8 @@ public class PortfolioService {
             double otherUserCurrentValue;
             if (Objects.equals(allUserportfolio.getId(), userPortfolio.getId())) {
                 otherUserCurrentValue = userCurrentValue - amountToWithdraw;
+                allUserportfolio.setContributionAmount(otherUserCurrentValue);
+                userPortfolioService.save(allUserportfolio);
                 userTransactionService.withdrawUserAmount(portfolio, user, amountToWithdraw, otherUserCurrentValue);
             }
             else {
